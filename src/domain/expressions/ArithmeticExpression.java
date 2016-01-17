@@ -1,22 +1,23 @@
 package domain.expressions;
 
-import domain.theADTs.MyDictionary;
-import domain.theADTs.MyHeap;
+import domain.state.Heap;
+import domain.state.SymbolTable;
 import exceptions.DivByZeroException;
 import exceptions.InvalidOptionException;
+import exceptions.VariableNotDefinedException;
 
-import java.io.Serializable;
-
-public final class ArithmeticExpression implements Serializable, Expression {
-    private final Expression exp1;
-    private final Expression exp2;
+public final class ArithmeticExpression implements Expression {
+    private static final long serialVersionUID = -3266927576087732224L;
+    private final Expression firstExpression;
+    private final Expression secondExpression;
     private final String operator;
 
     //Constructor for ArithmeticExpression with 3 parameters, the first and the second one
     //expressions and the last one an operator which show the operation between the expressions
-    public ArithmeticExpression(Expression exp1, Expression exp2, String operator){
-        this.exp1 = exp1;
-        this.exp2 = exp2;
+    public ArithmeticExpression(final Expression firstExpression,
+        final Expression secondExpression, final String operator) {
+        this.firstExpression = firstExpression;
+        this.secondExpression = secondExpression;
         this.operator = operator;
     }
 
@@ -24,27 +25,41 @@ public final class ArithmeticExpression implements Serializable, Expression {
     //operation between the 2 expressions
 
     @Override
-    public int eval(MyDictionary symbolTable, MyHeap heap) throws Exception {
-        int res1 = exp1.eval(symbolTable, heap);
-        int res2 = exp2.eval(symbolTable, heap);
-        switch (operator){
+    public Integer eval(final SymbolTable symbolTable, final Heap heap)
+        throws InvalidOptionException, DivByZeroException,
+        VariableNotDefinedException {
+        final Integer result;
+        final int firstResult = firstExpression.eval(symbolTable, heap);
+        final int secondResult = secondExpression.eval(symbolTable, heap);
+        //noinspection SwitchStatement
+        switch (operator) {
             case "+":
-                return res1 + res2;
+                result = firstResult + secondResult;
+
+                break;
             case "-":
-                return res1 - res2;
+                result = firstResult - secondResult;
+
+                break;
             case "*":
-                return res1 * res2;
+                result = firstResult * secondResult;
+
+                break;
             case "/":
-                if (res2 == 0){
+                if (secondResult == 0) {
                     throw new DivByZeroException("Division by zero \n");
                 }
-                return res1/res2;
+                result = firstResult / secondResult;
+
+                break;
+            default:
+                throw new InvalidOptionException("Invalid Arithmetic operator \n");
         }
-        throw new InvalidOptionException("Invalid Arithmetic operator \n");
+        return result;
     }
 
     @Override
-    public String toString(){
-        return exp1.toString() + " " + operator + " " + exp2.toString();
+    public String toString() {
+        return firstExpression.toString() + ' ' + operator + ' ' + secondExpression.toString();
     }
 }

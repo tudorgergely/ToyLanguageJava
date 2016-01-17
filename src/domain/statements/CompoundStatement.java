@@ -1,38 +1,27 @@
 package domain.statements;
 
-import domain.theADTs.ProgramState;
+import domain.state.State;
 
-import java.io.Serializable;
-
-public final class CompoundStatement implements MyStatement, Serializable {
+public final class CompoundStatement implements MyStatement {
+    private static final long serialVersionUID = 8744380961429868971L;
     private final MyStatement left;
     private final MyStatement right;
 
     //Constructor with 2 parameters, both of them of type MyStatement
-    public CompoundStatement(MyStatement left, MyStatement right) {
+    public CompoundStatement(final MyStatement left, final MyStatement right) {
         this.left = left;
         this.right = right;
     }
 
     @Override
-    public String toString() {
-        return "(" + left.toString() + "; " + right.toString() + ")";
-    }
-
-    @Override
-    public ProgramState execute(ProgramState programState) throws Exception {
-        programState.getExeStack().pushSt(right);
-        programState.getExeStack().pushSt(left);
+    public State execute(final State programState) {
+        programState.addToExeStack(right);
+        programState.addToExeStack(left);
         return programState;
     }
 
-    //Returns the leftStatement of the CompundStatement
-    public MyStatement getLeft() {
-        return left;
-    }
-
-    //Returns the rightStatement of the CompundStatement
-    public MyStatement getRight() {
-        return right;
+    @Override
+    public String toString() {
+        return '(' + left.toString() + "; " + right.toString() + ')';
     }
 }

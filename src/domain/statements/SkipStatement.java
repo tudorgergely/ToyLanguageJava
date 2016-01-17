@@ -1,22 +1,18 @@
 package domain.statements;
 
-import domain.theADTs.ProgramState;
+import domain.state.State;
 
-import java.io.Serializable;
+public final class SkipStatement implements MyStatement {
+    private static final long serialVersionUID = -5788825496056497287L;
 
-public class SkipStatement implements MyStatement, Serializable {
-    public SkipStatement() {
-
+    @Override
+    public State execute(final State programState) {
+        return programState;
     }
 
     @Override
     public String toString() {
-        return "Skip";
-    }
-
-    @Override
-    public ProgramState execute(ProgramState programState) throws Exception {
-        return programState;
+        return "skip";
     }
 
 }

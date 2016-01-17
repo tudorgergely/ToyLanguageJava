@@ -1,19 +1,25 @@
 package repository;
 
+import domain.state.State;
 import domain.statements.MyStatement;
-import domain.theADTs.ProgramState;
-
+import java.io.FileNotFoundException;
 import java.util.List;
 
 /**
  * @author tudor.gergely on 1/7/2016.
  */
 public interface Repository {
-    void addProgram(MyStatement statement);
+    void addProgram(MyStatement statement) throws FileNotFoundException;
 
-    List<ProgramState> getCurrentProgramStates();
+    List<State> getCurrentProgramStates();
 
-    void setCurrentProgramStates(List<ProgramState> currentProgramStates);
+    void setCurrentProgramStates(List<State> currentProgramStates);
 
     void writeProgramToFile();
+
+    void serializeProgramToFile() throws FileNotFoundException;
+
+    void deserializeProgramStateFromFile();
+
+    void clear();
 }

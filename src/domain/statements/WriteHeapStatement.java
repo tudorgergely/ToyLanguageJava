@@ -6,24 +6,28 @@ import exceptions.DivByZeroException;
 import exceptions.InvalidOptionException;
 import exceptions.VariableNotDefinedException;
 
-public final class PrintStatement implements MyStatement {
-    private static final long serialVersionUID = 3939065930029200827L;
+/**
+ * @author Gergely on 12/10/2015.
+ */
+public final class WriteHeapStatement implements MyStatement {
+    private static final long serialVersionUID = -1383898196074963881L;
+    private final String varName;
     private final Expression expression;
 
-    //Construct the printStatement depending on an Expression
-    public PrintStatement(final Expression expression) {
+    public WriteHeapStatement(final String varName, final Expression expression) {
+        this.varName = varName;
         this.expression = expression;
     }
 
     @Override
     public State execute(final State programState)
         throws DivByZeroException, InvalidOptionException, VariableNotDefinedException {
-        programState.addToOutput(programState.getEvaluation(expression).toString());
+        programState.putHeap(programState.getSymbol(varName), programState.getEvaluation(expression));
         return programState;
     }
 
     @Override
     public String toString() {
-        return "print(" + expression.toString() + ')';
+        return "writeHeap(" + varName + ", " + expression.toString() + ')';
     }
 }

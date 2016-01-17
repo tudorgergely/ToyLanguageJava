@@ -1,19 +1,19 @@
 package domain.expressions;
 
-import domain.theADTs.MyDictionary;
-import domain.theADTs.MyHeap;
-import exceptions.VariableNotDefined;
-import java.io.Serializable;
+import domain.state.Heap;
+import domain.state.SymbolTable;
+import exceptions.VariableNotDefinedException;
 
 
 /**
  * @author tudor.gergely on 10/19/2015.
  */
-public final class VariableExpression implements Serializable, Expression {
+public final class VariableExpression implements Expression {
+    private static final long serialVersionUID = -4071560190717718598L;
     private final String name;
 
     //Construct a new VariableExpression with the name given as parameter
-    public VariableExpression(String name) {
+    public VariableExpression(final String name) {
         this.name = name;
     }
 
@@ -22,13 +22,14 @@ public final class VariableExpression implements Serializable, Expression {
     //The function will throw an error if the name does
     //not have an associated value
     @Override
-    public int eval(MyDictionary symbolTable, MyHeap heap) throws VariableNotDefined {
-        return (int) symbolTable.getElem(name);
+    public Integer eval(final SymbolTable symbolTable, final Heap heap)
+        throws VariableNotDefinedException {
+        return symbolTable.get(name);
     }
 
     //Return the name of the variable as a string
     @Override
     public String toString() {
-        return "VariableExpression " + name + "\n";
+        return name;
     }
 }

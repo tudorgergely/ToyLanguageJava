@@ -1,9 +1,9 @@
 package controller;
 
+import domain.state.State;
 import domain.statements.MyStatement;
-import domain.theADTs.ProgramState;
 import exceptions.EmptyContainerException;
-
+import java.io.FileNotFoundException;
 import java.util.List;
 
 /**
@@ -12,13 +12,13 @@ import java.util.List;
 public interface Controller {
     void loadProgramFromFile();
 
-    void allSteps() throws Exception;
+    void allSteps() throws InterruptedException;
 
-    void loadProgram(MyStatement myStatement);
+    void loadProgram(MyStatement myStatement) throws FileNotFoundException;
 
-    void oneStepForAllPrg(List<ProgramState> programStates) throws EmptyContainerException, InterruptedException;
+    void oneStepForAllPrg(List<State> states) throws EmptyContainerException, InterruptedException;
 
-    List<ProgramState> removeCompletedPrograms(List<ProgramState> programStates);
+    List<State> removeCompletedPrograms(List<State> states);
 
     void stop();
 }

@@ -1,9 +1,13 @@
 package domain.statements;
 
-import domain.theADTs.ProgramState;
+import domain.state.State;
+import exceptions.DivByZeroException;
+import exceptions.InvalidOptionException;
+import exceptions.VariableNotDefinedException;
+import java.io.Serializable;
 
-public interface MyStatement {
+public interface MyStatement extends Serializable {
     String toString();
 
-    ProgramState execute(ProgramState programState) throws Exception;
+    State execute(State programState) throws DivByZeroException, InvalidOptionException, VariableNotDefinedException;
 }

@@ -1,16 +1,33 @@
 package ui;
 
 import controller.MyController;
-import domain.expressions.*;
-import domain.statements.*;
-
+import domain.expressions.ArithmeticExpression;
+import domain.expressions.BoolExpression;
+import domain.expressions.ConstantExpression;
+import domain.expressions.Expression;
+import domain.expressions.ReadExpression;
+import domain.expressions.ReadHeapExpression;
+import domain.expressions.RelationalExpression;
+import domain.expressions.VariableExpression;
+import domain.statements.AssignStatement;
+import domain.statements.CompoundStatement;
+import domain.statements.ForkStatement;
+import domain.statements.IfStatement;
+import domain.statements.IfThenStatement;
+import domain.statements.MyStatement;
+import domain.statements.NewStatement;
+import domain.statements.PrintStatement;
+import domain.statements.SkipStatement;
+import domain.statements.SwitchStatement;
+import domain.statements.WhileStatement;
+import domain.statements.WriteHeapStatement;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public final class UserInterface {
     private final boolean fromFile;
-    private MyController ctrl;
+    private final MyController ctrl;
     private Scanner keyboard;
 
     //constructor based on the controler
@@ -23,7 +40,7 @@ public final class UserInterface {
     //constructor based on the controller and a file
     public UserInterface(MyController ctrl, String fileName) throws FileNotFoundException {
         this.ctrl = ctrl;
-        File inputFile = new File(fileName);
+        final File inputFile = new File(fileName);
         keyboard = new Scanner(inputFile);
         fromFile = true;
     }
@@ -70,24 +87,28 @@ public final class UserInterface {
     }
 
     //Execute the program in one step
-    private void executeProgram() throws Exception {
+    private void executeProgram() throws InterruptedException {
         ctrl.allSteps();
     }
 
     //Creat the main program , and will put it into the Repository
     private void loadProgram() {
-        ctrl.loadProgram(new CompoundStatement(
-                new CompoundStatement(
-                    new AssignStatement("v", new ConstantExpression(10)),
-                    new NewStatement("a", new ConstantExpression(22))
-                ),
-                new CompoundStatement(
-                        new ForkStatement(new CompoundStatement(
-                                new CompoundStatement(new wHStatement("a", new ConstantExpression(30)), new AssignStatement("v", new ConstantExpression(32))),
-                                new CompoundStatement(new PrintStatement(new VariableExpression("v")), new PrintStatement(new rHExpression("a"))))
-                        ),
-                        new CompoundStatement(new PrintStatement(new VariableExpression("v")), new PrintStatement(new rHExpression("a")))
-                )));
+        try {
+            ctrl.loadProgram(new CompoundStatement(
+                    new CompoundStatement(
+                        new AssignStatement("v", new ConstantExpression(10)),
+                        new NewStatement("a", new ConstantExpression(22))
+                    ),
+                    new CompoundStatement(
+                            new ForkStatement(new CompoundStatement(
+                                    new CompoundStatement(new WriteHeapStatement("a", new ConstantExpression(30)), new AssignStatement("v", new ConstantExpression(32))),
+                                    new CompoundStatement(new PrintStatement(new VariableExpression("v")), new PrintStatement(new ReadHeapExpression("a"))))
+                            ),
+                            new CompoundStatement(new PrintStatement(new VariableExpression("v")), new PrintStatement(new ReadHeapExpression("a")))
+                    )));
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found: " + e.getMessage());
+        }
     }
 
     //Creates a new statement, it will be caled recursivly evry time
@@ -130,16 +151,16 @@ public final class UserInterface {
                 MyStatement elseStatement = newStatement();
                 return new IfStatement(condition, thenStatement, elseStatement);
             }
-            if (choice == 5) {
-                System.out.println("Expression: ");
-                Expression exp = newExpression();
-                return new IncrementStatement(exp);
-            }
-            if (choice == 6) {
-                System.out.println("Expression: ");
-                Expression exp = newExpression();
-                return new DecrementStatement(exp);
-            }
+//            if (choice == 5) {
+//                System.out.println("Expression: ");
+//                Expression exp = newExpression();
+//                return new IncrementStatement(exp);
+//            }
+//            if (choice == 6) {
+//                System.out.println("Expression: ");
+//                Expression exp = newExpression();
+//                return new DecrementStatement(exp);
+//            }
 
             if (choice == 7) {
                 System.out.println("Expression: ");
@@ -186,7 +207,7 @@ public final class UserInterface {
                 String l = keyboard.nextLine();
                 System.out.println("Expression: ");
                 Expression e = newExpression();
-                return new wHStatement(l, e);
+                return new WriteHeapStatement(l, e);
             }
             if (choice == 13) {
                 System.out.println("Statement: ");
@@ -260,7 +281,7 @@ public final class UserInterface {
                 if (choice == 7) {
                     System.out.println("Enter var name");
                     String l = keyboard.nextLine();
-                    return new rHExpression(l);
+                    return new ReadHeapExpression(l);
                 }
                 System.out.print("Choice " + Integer.toString(choice) + " is invalid!");
             } catch (Exception e) {

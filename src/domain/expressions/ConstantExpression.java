@@ -1,27 +1,26 @@
 package domain.expressions;
 
-import domain.theADTs.MyDictionary;
-import domain.theADTs.MyHeap;
+import domain.state.Heap;
+import domain.state.SymbolTable;
 
-import java.io.Serializable;
-
-public final class ConstantExpression implements Serializable, Expression {
-    private final int nr;
+public final class ConstantExpression implements Expression {
+    private static final long serialVersionUID = -8768614264755824512L;
+    private final int constant;
 
     //Creates a ConstantExpression. entity which hold an integer
     //The parameter is an int which will be stored
-    public ConstantExpression(int nr) {
-        this.nr = nr;
+    public ConstantExpression(final int constant) {
+        this.constant = constant;
     }
 
     //Evaluate the ConstExpression. by returning its value
     @Override
-    public int eval(MyDictionary symbolTable, MyHeap heap) {
-        return nr;
+    public Integer eval(final SymbolTable symbolTable, final Heap heap) {
+        return constant;
     }
 
     @Override
     public String toString() {
-        return Integer.toString(nr);
+        return Integer.toString(constant);
     }
 }

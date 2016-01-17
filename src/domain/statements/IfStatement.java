@@ -1,43 +1,38 @@
 package domain.statements;
 
 import domain.expressions.Expression;
-import domain.theADTs.ProgramState;
+import domain.state.State;
+import exceptions.DivByZeroException;
+import exceptions.InvalidOptionException;
+import exceptions.VariableNotDefinedException;
 
-import java.io.Serializable;
-
-public final class IfStatement implements MyStatement, Serializable {
+public final class IfStatement implements MyStatement {
+    private static final long serialVersionUID = 7349845643587142149L;
     private final Expression condition;
     private final MyStatement thenStatement;
     private final MyStatement elseStatement;
 
-    public IfStatement(Expression expression, MyStatement thenStatement, MyStatement elseStatement) {
+    public IfStatement(final Expression expression,
+        final MyStatement thenStatement, final MyStatement elseStatement) {
         this.condition = expression;
         this.thenStatement = thenStatement;
         this.elseStatement = elseStatement;
     }
 
-    public Expression getCondition() {
-        return condition;
-    }
-
-    public MyStatement getThenStatement() {
-        return thenStatement;
-    }
-
-    public MyStatement getElseStatement() {
-        return elseStatement;
+    @Override
+    public State execute(final State programState)
+        throws DivByZeroException, InvalidOptionException, VariableNotDefinedException {
+        if (programState.getEvaluation(condition) == 0) {
+            elseStatement.execute(programState);
+        } else {
+            thenStatement.execute(programState);
+        }
+        return programState;
     }
 
     @Override
-    public ProgramState execute(ProgramState programState) throws Exception {
-        if (condition.eval(
-                programState.getSymbolTable(),
-                programState.getHeap()
-        ) != 0) {
-            thenStatement.execute(programState);
-        } else {
-            elseStatement.execute(programState);
-        }
-        return programState;
+    public String toString() {
+        return "if (" + condition + ") then (" + thenStatement.toString()
+            + ") else (" + elseStatement.toString() + ')';
     }
 }

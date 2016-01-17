@@ -1,40 +1,32 @@
 package domain.statements;
 
 import domain.expressions.Expression;
-import domain.theADTs.ProgramState;
+import domain.state.State;
+import exceptions.DivByZeroException;
+import exceptions.InvalidOptionException;
+import exceptions.VariableNotDefinedException;
 
-import java.io.Serializable;
+public final class WhileStatement implements MyStatement {
+    private static final long serialVersionUID = 3958115633880462949L;
+    private final Expression expression;
+    private final MyStatement statement;
 
-public final class WhileStatement implements MyStatement, Serializable {
-    private final Expression expr;
-    private final MyStatement stm;
-
-    public WhileStatement(Expression e, MyStatement s) {
-        this.expr = e;
-        this.stm = s;
-    }
-
-    public String toString() {
-        return "while(" + expr.toString() + " != 0" + ") do (" + stm.toString() + ")";
+    public WhileStatement(final Expression expression, final MyStatement statement) {
+        this.expression = expression;
+        this.statement = statement;
     }
 
     @Override
-    public ProgramState execute(ProgramState programState) throws Exception {
-        if (expr.eval(
-                programState.getSymbolTable(),
-                programState.getHeap()
-        ) != 0) {
-            programState.getExeStack().pushSt(this);
-            programState.getExeStack().pushSt(stm);
+    public State execute(final State programState)
+        throws DivByZeroException, InvalidOptionException, VariableNotDefinedException {
+        if (programState.getEvaluation(expression) != 0) {
+            programState.addToExeStack(this);
+            programState.addToExeStack(statement);
         }
         return programState;
     }
 
-    public Expression getExpression() {
-        return expr;
-    }
-
-    public MyStatement getStatement() {
-        return stm;
+    public String toString() {
+        return "while (" + expression.toString() + " != 0" + ") do (" + statement.toString() + ')';
     }
 }

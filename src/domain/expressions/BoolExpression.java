@@ -1,51 +1,54 @@
 package domain.expressions;
 
-import domain.theADTs.MyDictionary;
-import domain.theADTs.MyHeap;
+import domain.state.Heap;
+import domain.state.SymbolTable;
+import exceptions.DivByZeroException;
 import exceptions.InvalidOptionException;
+import exceptions.VariableNotDefinedException;
 
-import java.io.Serializable;
-
-public final class BoolExpression implements Serializable, Expression {
-    private final Expression exp1;
-    private final Expression exp2;
+public final class BoolExpression implements Expression {
+    private static final long serialVersionUID = -523862729246301861L;
+    private final Expression firstExpression;
+    private final Expression secondExpression;
     private final String boolOperator;
 
-    public BoolExpression(Expression e1, Expression e2, String lo) {
-        this.exp1 = e1;
-        this.exp2 = e2;
-        this.boolOperator = lo;
+    public BoolExpression(final Expression firstExpression,
+        final Expression secondExpression, final String boolOperator) {
+        this.firstExpression = firstExpression;
+        this.secondExpression = secondExpression;
+        this.boolOperator = boolOperator;
     }
 
     @Override
-    public int eval(MyDictionary symTable, MyHeap heap) throws Exception {
-        int result1, result2;
+    public Integer eval(final SymbolTable symTable, final Heap heap)
+        throws InvalidOptionException, DivByZeroException,
+        VariableNotDefinedException {
+        final int firstResult = firstExpression.eval(symTable, heap);
+        final int secondResult = secondExpression.eval(symTable, heap);
+        final Integer result;
 
-        result1 = exp1.eval(symTable, heap);
-        result2 = exp2.eval(symTable, heap);
+        //noinspection SwitchStatement
+        switch (boolOperator) {
+            case "&":
+                result = ((firstResult == 0) && (secondResult == 0)) ? 1 : 0;
 
-        if (boolOperator.equals("&")) {
-            if ((result1 == 0) && (result2 == 0)) {
-                return 1;
-            } else return 0;
+                break;
+            case "|":
+                result = ((firstResult == 0) || (secondResult == 0)) ? 1 : 0;
+
+                break;
+            case "!":
+                result = firstResult;
+
+                break;
+            default:
+                throw new InvalidOptionException("Invalid Boolean operator \n");
         }
-
-        if (boolOperator.equals("|")) {
-            if (result1 == 0 || result2 == 0) {
-                return 1;
-            } else return 0;
-        }
-
-        if (boolOperator.equals("!")) {
-            if (result1 != 0) {
-                return 1;
-            } else return 0;
-        }
-        throw new InvalidOptionException("Invalid Boolean operator \n");
+        return result;
     }
 
     @Override
     public String toString() {
-        return exp1.toString() + " " + boolOperator + " " + exp1.toString();
+        return firstExpression.toString() + ' ' + boolOperator + ' ' + firstExpression.toString();
     }
 }

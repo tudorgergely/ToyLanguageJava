@@ -1,7 +1,9 @@
 package exceptions;
 
 public final class InvalidOptionException extends Exception {
-    public InvalidOptionException(String msg) {
+    private static final long serialVersionUID = 3467647053644811025L;
+
+    public InvalidOptionException(final String msg) {
         super(msg);
     }
 }

@@ -1,20 +1,21 @@
 package controller;
 
-import domain.statements.*;
-import domain.theADTs.*;
-import exceptions.EmptyContainerException;
-import repository.MyRepository;
-
-import java.util.ArrayList;
+import domain.state.State;
+import domain.statements.MyStatement;
+import java.io.FileNotFoundException;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import repository.Repository;
 
 public final class MyController implements Controller {
-    private final MyRepository repo;
+    private final Repository repo;
     private final ExecutorService pool;
 
-    public MyController(MyRepository repository) {
+    public MyController(final Repository repository) {
         repo = repository;
         pool = Executors.newFixedThreadPool(100);
     }
@@ -25,14 +26,9 @@ public final class MyController implements Controller {
     }
 
     @Override
-    public void allSteps() throws EmptyContainerException, InterruptedException {
-        while (true) {
-            if (Thread.currentThread().isInterrupted()) {
-                break;
-            }
-            if (repo.getCurrentProgramStates().size() == 0) {
-                break;
-            }
+    public void allSteps() throws InterruptedException {
+        while (!(Thread.currentThread().isInterrupted()
+            || repo.getCurrentProgramStates().isEmpty())) {
             oneStepForAllPrg(removeCompletedPrograms(repo.getCurrentProgramStates()));
         }
     }
@@ -46,39 +42,44 @@ public final class MyController implements Controller {
     //and after the program is added to the repository
     //the stack will be created based on the added program
     @Override
-    public void loadProgram(MyStatement statement) {
-        repo.setCurrentProgramStates(new ArrayList<>());
+    public void loadProgram(final MyStatement statement) throws FileNotFoundException {
+        repo.clear();
         repo.addProgram(statement);
     }
 
+    @SuppressWarnings("ReturnOfNull")
     @Override
-    public void oneStepForAllPrg(List<ProgramState> programStates) throws EmptyContainerException, InterruptedException {
+    public void oneStepForAllPrg(final List<State> programStates) throws InterruptedException {
         programStates.addAll(
-            pool.invokeAll(programStates.stream()
-                .map(p -> (Callable<ProgramState>) (p::oneStep))
-                .collect(Collectors.toList())).stream()
-            .map(future -> {
-                try {
-                    return future.get();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            })
-            .filter(p -> p != null)
-            .collect(Collectors.toList())
+            pool.invokeAll(
+                programStates.stream()
+                    .map(p -> (Callable<State>) p::oneStep)
+                    .collect(Collectors.toList())).stream()
+                .map(future -> {
+                    try {
+                        return future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Thread.currentThread().interrupt();
+                    } catch (ExecutionException e) {
+//                        e.printStackTrace();
+                        return null;
+                    }
+                    return null;
+                })
+                .filter(p -> p != null)
+                .collect(Collectors.toList())
         );
         repo.setCurrentProgramStates(programStates);
 
-        programStates.forEach(programState -> System.out.println(programState.toString()));
+        programStates.forEach(programState -> System.out.println(programState.toString() + "\n-----------------------------\n"));
     }
 
     @Override
-    public List<ProgramState> removeCompletedPrograms(List<ProgramState> programStates) {
+    public List<State> removeCompletedPrograms(final List<State> programStates) {
         return programStates.stream()
-            .filter(ProgramState::isNotCompleted)
+            .filter(State::isNotCompleted)
+            .distinct()
             .collect(Collectors.toList());
     }
 }

@@ -1,32 +1,43 @@
 package repository;
 
+import domain.state.ProgramState;
+import domain.state.State;
 import domain.statements.MyStatement;
-import domain.theADTs.ProgramState;
-
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public final class MyRepository implements Repository {
-    private final List<ProgramState> currentProgramStates;
+    private final List<State> currentProgramStates;
     private final File file;
 
     //Constructor of the Repository, will allocate an array of ProgramState's
     //an int for the currentProgram as the position in the array,
     //and an int as the size of the array
     public MyRepository() {
-        currentProgramStates = new ArrayList<>();
+        currentProgramStates = new ArrayList<>(10);
         file = new File("programState.txt");
         resetFile();
     }
 
     @Override
-    public List<ProgramState> getCurrentProgramStates() {
-        return currentProgramStates;
+    public List<State> getCurrentProgramStates() {
+        return Collections.unmodifiableList(currentProgramStates);
     }
 
     @Override
-    public void setCurrentProgramStates(List<ProgramState> currentProgramStates) {
+    public void setCurrentProgramStates(final List<State> currentProgramStates) {
         this.currentProgramStates.clear();
         this.currentProgramStates.addAll(currentProgramStates);
     }
@@ -34,62 +45,66 @@ public final class MyRepository implements Repository {
     //Add a program to the Repository, a program which is a complex Statement
     //The parameter is of type MyStatement and represent the program
     @Override
-    public void addProgram(MyStatement stm) {
-        currentProgramStates.add(new ProgramState(stm));
+    public void addProgram(final MyStatement statement) {
+        final State state = new ProgramState();
+        state.addToExeStack(statement);
+        currentProgramStates.add(state);
         serializeProgramToFile();
     }
 
-    private void serializeProgramToFile() {
-        try {
-            FileOutputStream fout = new FileOutputStream("programStates.f");
-            ObjectOutputStream oos = new ObjectOutputStream(fout);
+    @Override
+    public void serializeProgramToFile() {
+        try (FileOutputStream fout = new FileOutputStream("programStates.f");
+             ObjectOutput oos = new ObjectOutputStream(fout)) {
             currentProgramStates.forEach(programState -> {
                 try {
                     oos.writeObject(programState);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             });
-            oos.close();
-            fout.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void deserializeProgramStateFromFile() {
-        try {
-            FileInputStream streamIn = new FileInputStream("programStates.f");
-            ObjectInputStream objectinputstream = new ObjectInputStream(streamIn);
-            currentProgramStates.clear();
-            currentProgramStates.addAll((List<ProgramState>) objectinputstream.readObject());
-            objectinputstream.close();
-            streamIn.close();
-        } catch (Exception e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
+    public void deserializeProgramStateFromFile() {
+        try (FileInputStream streamIn = new FileInputStream("programStates.f");
+             ObjectInput ois = new ObjectInputStream(streamIn)) {
+
+            currentProgramStates.clear();
+            currentProgramStates.addAll((Collection<State>) ois.readObject());
+        } catch (final IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void clear() {
+        currentProgramStates.clear();
+    }
+
+    @Override
     public void writeProgramToFile() {
-        try {
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"));
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"))) {
             currentProgramStates.forEach(programState -> {
                 try {
-                    bw.write(programState.toString() + "\n");
-                } catch (IOException e) {
+                    bw.write(programState.toString() + '\n');
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             });
-            bw.close();
-        } catch (Exception e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
     }
 
     private void resetFile() {
         if (file.exists()) {
-            file.delete();
+            if (!file.delete()) {
+                System.out.println("File could not be deleted");
+            }
         }
     }
 }

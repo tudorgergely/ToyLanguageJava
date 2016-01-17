@@ -1,36 +1,33 @@
 package domain.statements;
 
 import domain.expressions.Expression;
-import domain.theADTs.ProgramState;
+import domain.state.State;
+import exceptions.DivByZeroException;
+import exceptions.InvalidOptionException;
+import exceptions.VariableNotDefinedException;
 
-import java.io.Serializable;
+public final class IfThenStatement implements MyStatement {
+    private static final long serialVersionUID = -8530726832927261023L;
+    private final Expression expression;
+    private final MyStatement statement;
 
-public final class IfThenStatement implements MyStatement, Serializable {
-    private final Expression exp;
-    private final MyStatement stm;
 
+    public IfThenStatement(final Expression expression,
+        final MyStatement statement) {
+        this.expression = expression;
+        this.statement = statement;
+    }
 
-    public IfThenStatement(Expression e, MyStatement s) {
-        this.exp = e;
-        this.stm = s;
+    @Override
+    public State execute(final State programState)
+        throws DivByZeroException, InvalidOptionException, VariableNotDefinedException {
+        new IfStatement(expression, statement, new SkipStatement()).execute(programState);
+        return programState;
     }
 
     @Override
     public String toString() {
-        return "if" + exp.toString() + "then" + stm.toString();
-    }
-
-    @Override
-    public ProgramState execute(ProgramState programState) throws Exception {
-        new IfStatement(exp, stm, new SkipStatement()).execute(programState);
-        return programState;
-    }
-
-    public Expression getExp() {
-        return exp;
-    }
-
-    public MyStatement getStm() {
-        return stm;
+        return "if (" + expression.toString() + ") then ("
+            + statement.toString() + ')';
     }
 }
